@@ -1,5 +1,5 @@
 class Settings():#把所有设置放到Settings这个类里面
-  """存储《外星人入侵》游戏所有可配置参数的类，统一管理屏幕、飞船、子弹等设置"""
+    """存储《外星人入侵》游戏所有可配置参数的类，统一管理屏幕、飞船、子弹等设置"""
     def __init__(self):
         self.screen_width=1200
         self.screen_height=800
@@ -9,4 +9,9 @@ class Settings():#把所有设置放到Settings这个类里面
         self.bullet_width = 5  # 子弹宽度（像素），3是比较合适的数值
         self.bullet_height=8
         self.bullet_color = (60, 60, 60)  # 子弹颜色（深灰色）
-        self.bullets_allowed=5
+        self.bullets_allowed=10
+        self.alien_speed=1
+        self.fleet_drop_speed=1
+        self.fleet_direction=1#1为向右，-1为向左
+        #记录外星人移动左右方向，不用布尔值是因为数字还可以表示移动的距离
+        self.ship_limit=3#玩家初始拥有飞船数量

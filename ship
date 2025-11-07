@@ -30,7 +30,6 @@ class Ship():
         self.screen.blit(self.image, self.rect)#已经让self.rect的位置与游戏窗口底部中央对齐了
     #了解pygame坐标位置逻辑：左上角为（0，0），横为x，纵为y
 
-    
     def update(self):
         """"根据移动标志调整飞船的位置，限制在屏幕边界内"""
         if self.moving_right and self.rect.right<self.screen_rect.right:
@@ -39,3 +38,9 @@ class Ship():
             self.x-=self.settings.ship_speed
             #在x上进行加减，因为rect.x只能储存整数，x储存的是真正浮点数的值
         self.rect.x=self.x
+
+    def center_ship(self):
+        """让飞船在屏幕底部居中"""
+        self.rect.midbottom=self.screen_rect.midbottom
+        self.x=float(self.rect.x)
+
