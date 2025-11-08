@@ -17,16 +17,17 @@ class AlienInvasion:
         self.settings=Settings()
         #为了能访问Settings类里的资源，设置一个新的属性settings并把它赋值给类的一个实例
         #通过创建Settings类的实例（这个实例包含了所有游戏配置），把游戏的所有配置 “打包” 到self.settings里
-        #settings 是 AlienInvasion 类的实例属性
-        #这个属性的值是Settings类的一个实例
+        #settings 是 AlienInvasion 类的实例属性，这个属性的值是Settings类的一个实例
         #AlienInvasion 类通过自己的 settings 属性，持有了一个 Settings 类的实例。
         #这个类的作用是储存固定的游戏配置（比如屏幕宽高、子弹速度），它不需要依赖 “当前游戏的状态”（比如飞船位置、屏幕对象）所以不用(self)
-        self.screen=pygame.display.set_mode((self.settings.screen_width,self.settings.screen_height))
+        self.screen=pygame.display.set_mode((self.settings.SCREEN_WIDTH,self.settings.SCREEN_HEIGHT))
         #给类创建一个screen属性，返回一个游戏的展示屏幕，传入的元组可设置窗口的宽和高（单位：像素）
         #让尺寸数据从属性里获取
         pygame.display.set_caption("Alien Invasion")#设置游戏的名字
         #self.bg_color=(138,206,0) #设置背景色：红，绿，蓝，最多255
         #创建一个用于储存游戏统计数据信息的实例
+        # 预生成渐变背景
+        self._create_gradient_background()
         self.stats=GameStats(self)
         self.ship=Ship(self)#创建新属性，把它赋值为飞船的一个实例
         #飞船的构造函数还需要一个游戏实例，所以把当前游戏传进去。当飞船拿到游戏实例后，就将自己绘制到游戏屏幕上
@@ -82,15 +83,55 @@ class AlienInvasion:
 
 
     def _update_screen(self):
-        # 每次循环时都重绘屏幕
-        self.screen.fill(self.settings.bg_color)
+        # 绘制预生成的渐变背景
+        self.screen.blit(self.settings.bg_surface, (0, 0))
+        # 绘制飞船、子弹、外星人
         self.ship.blitme()
-        for bullet in self.bullets.sprites():#遍历编组里的每一个子弹
+        for bullet in self.bullets.sprites():
             bullet.draw_bullet()
         self.aliens.draw(self.screen)
-        # 让最近绘制的屏幕可见
+        # 刷新屏幕
         pygame.display.flip()
-        # 在while循环内，刷新屏幕，重新绘制屏幕上的内容，用新的屏幕内容代替旧的
+
+
+    def _create_gradient_background(self):
+        """预生成渐变背景，只绘制一次"""
+        self.settings.bg_surface = pygame.Surface(
+            (self.settings.SCREEN_WIDTH, self.settings.SCREEN_HEIGHT))
+        # 贴近 Lesbian Flag 的橙粉配色（更柔和且贴合旗帜基调）
+        start_color = (255, 140, 110)  # 旗帜感深橙
+        mid_color = (255, 255, 255)  # 白色窄条
+        end_color = (200, 100, 180)  # 旗帜感深粉
+
+        H = self.settings.SCREEN_HEIGHT  # 固定 800 像素高度，避免计算误差
+        # 明确分段（覆盖整个窗口，无遗漏）
+        orange_to_white_end = 320  # 橙→白：0~320 像素（占 40%）
+        white_to_pink_end = 800  # 白→粉：480~800 像素（占 40%）
+        white_start = 320  # 白色开始：320 像素
+        white_end = 480  # 白色结束：480 像素（占 20%，窄条）
+
+        # 1. 深橙 → 白色（0 ~ 320 像素）
+        s_r, s_g, s_b = start_color
+        m_r, m_g, m_b = mid_color
+        for y in range(0, orange_to_white_end):
+            ratio = y / orange_to_white_end
+            r = int(s_r + (m_r - s_r) * ratio)
+            g = int(s_g + (m_g - s_g) * ratio)
+            b = int(s_b + (m_b - s_b) * ratio)
+            pygame.draw.line(self.settings.bg_surface, (r, g, b), (0, y), (self.settings.SCREEN_WIDTH, y))
+
+        # 2. 纯白色窄条（320 ~ 480 像素）
+        for y in range(white_start, white_end):
+            pygame.draw.line(self.settings.bg_surface, mid_color, (0, y), (self.settings.SCREEN_WIDTH, y))
+
+        # 3. 白色 → 深粉（480 ~ 800 像素，全覆盖底部）
+        e_r, e_g, e_b = end_color
+        for y in range(white_end, H):
+            ratio = (y - white_end) / (H - white_end)
+            r = int(m_r + (e_r - m_r) * ratio)
+            g = int(m_g + (e_g - m_g) * ratio)
+            b = int(m_b + (e_b - m_b) * ratio)
+            pygame.draw.line(self.settings.bg_surface, (r, g, b), (0, y), (self.settings.SCREEN_WIDTH, y))
 
 
     def _update_bullets(self):
@@ -125,12 +166,12 @@ class AlienInvasion:
         alien=Alien(self)
         # 2. 计算横向可容纳的外星人数（左右各留1个外星人宽度的边距）
         alien_width=alien.rect.width
-        available_space_x = self.settings.screen_width - (2 * alien_width)
+        available_space_x = self.settings.SCREEN_WIDTH - (2 * alien_width)
         # 每个外星人占2个宽度（自身宽度 + 1个宽度的间距），向下取整确保不超出屏幕
         number_aliens_x = available_space_x // (2 * alien_width)
         alien_height=alien.rect.height
         ship_height=self.ship.rect.height
-        available_space_y=(self.settings.screen_height-(3*alien_height)-ship_height)
+        available_space_y=(self.settings.SCREEN_HEIGHT-(3*alien_height)-ship_height)
         number_rows=available_space_y//(2*alien_height)
 
         #创建第一行外星人
