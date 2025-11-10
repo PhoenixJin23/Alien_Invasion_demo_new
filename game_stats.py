@@ -6,10 +6,11 @@ class GameStats:
         """初始化统计信息"""
         self.settings=ai_game.settings
         self.reset_stats()
-        #游戏刚启动时出于活动状态
-        self.game_active=True
+        #游戏刚启动时出于非活动状态
+        self.game_active=False
 
-    def reset_stats(self):
+    def reset_stats(self):#用来重置信息的方法
         """初始化在游戏运行期间可能变化的统计信息"""
         self.ship_left=self.settings.ship_limit
         #将游戏剩余的飞船数量恢复成初始值，有利于每次开局重设游戏数据
+        self.score=0
