@@ -3,11 +3,12 @@ import sys
 from time import sleep#帮助暂停游戏
 from settings import Settings#文件名 import 类名
 from ship import Ship
-from bullets import Bullet
+from bullet import Bullet
 from alien import Alien
 from game_stats import GameStats
 from button import Button
 from scoreboard import Scoreboard
+
 
 
 class AlienInvasion:
@@ -16,7 +17,7 @@ class AlienInvasion:
     def __init__(self):
         """初始化游戏并创建游戏资源"""
         pygame.init()#初始化游戏，必不可少#游戏初始化时需要构造实例
-        self.settings=Settings()
+        self.settings=Settings()#类是 “抽象模板”，实例是 “具体实物”，实例化就是把模板变成实物的过程
         #为了能访问Settings类里的资源，设置一个新的属性settings并把它赋值给类的一个实例
         #通过创建Settings类的实例（这个实例包含了所有游戏配置），把游戏的所有配置 “打包” 到self.settings里
         #settings 是 AlienInvasion 类的实例属性，这个属性的值是Settings类的一个实例
@@ -81,6 +82,8 @@ class AlienInvasion:
             self.stats.reset_stats()
             self.stats.game_active=True
             self.scoreboard.prep_score()
+            self.scoreboard.prep_level()
+            self.scoreboard.prep_ships()
             #清空余下的外星人和子弹
             self.aliens.empty()
             self.bullets.empty()
@@ -189,11 +192,15 @@ class AlienInvasion:
             for aliens in collisions.values():
                 self.stats.score+=self.settings.alien_point*len(aliens)
                 self.scoreboard.prep_score()#重新绘制分数信息
+                self.scoreboard.check_high_score()
         if not self.aliens:
             #删除现有的子弹并新建一群外星人,并加速
             self.bullets.empty()
             self._create_fleet()
             self.settings.increase_speed()
+            #提高等级
+            self.stats.level+=1
+            self.scoreboard.prep_level()
 
 
     def _fire_bullet(self):
@@ -266,6 +273,7 @@ class AlienInvasion:
         #将 ships_left 减1
         if self.stats.ship_left>0:
             self.stats.ship_left-=1
+            self.scoreboard.prep_ships()
 
             #清除余下的外星人和子弹
             self.aliens.empty()
