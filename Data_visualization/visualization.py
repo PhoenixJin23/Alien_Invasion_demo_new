@@ -1,13 +1,13 @@
 from die import Die
 import plotly.express as px
 
-#创建一个D6
+#创建一个D6和D12
 die_1=Die()
-die_2=Die()
+die_2=Die(12)
 
 #骰几次骰子并将结果存储在一个列表中
 results=[]
-for roll_num in range(1000):
+for roll_num in range(10000):
     result=die_1.roll()+die_2.roll()
     results.append(result)
 
@@ -27,3 +27,4 @@ fig=px.bar(x=poss_results,y=frequencies,title=title,labels=labels) #bar是用来
 #进一步定制图形
 fig.update_layout(xaxis_dtick=1)
 fig.show()
+fig.write_html("Rolling Dice.html") #保存为html格式的图片方便随时在浏览器查看
